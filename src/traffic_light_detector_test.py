@@ -41,9 +41,9 @@ def imageProcess_task():
         cv2.namedWindow('traffic_light')
         #cv2.namedWindow('raw_image')
         #cv2.namedWindow('hsv_image')
-        #cv2.namedWindow('maskr')
-        #cv2.namedWindow('maskg')
-        #cv2.namedWindow('masky')
+        cv2.namedWindow('maskr')
+        cv2.namedWindow('maskg')
+        cv2.namedWindow('masky')
 
         cv2.setMouseCallback('traffic_light',onMouse)
         print 'Showing camera feed. click window or press any key to stop.'
@@ -55,21 +55,21 @@ def imageProcess_task():
         success, frame = cameraCapture.read()
         while success and not mouse_clicked:
             t0 = time.time()
-            totalFrame = cameraCapture.get(cv2.CAP_PROP_POS_FRAMES)
-            print("total frame",totalFrame)
+            #totalFrame = cameraCapture.get(cv2.CAP_PROP_POS_FRAMES)
+            #print("total frame",totalFrame)
             success, frame = cameraCapture.read()
             raw_image = frame
             result_image = frame
             hsv_image = cv2.cvtColor(raw_image, cv2.COLOR_BGR2HSV)
 
             # color range
-            lower_red1 = np.array([0,100,220])
+            lower_red1 = np.array([0,100,210])
             upper_red1 = np.array([10,255,255])
-            lower_red2 = np.array([160,100,220])
+            lower_red2 = np.array([160,100,210])
             upper_red2 = np.array([180,255,255])
-            lower_green = np.array([40,50,220])
+            lower_green = np.array([40,50,210])
             upper_green = np.array([90,255,255])
-            lower_yellow = np.array([15,150,230])
+            lower_yellow = np.array([15,150,220])
             upper_yellow = np.array([35,255,255])
             mask1 = cv2.inRange(hsv_image, lower_red1, upper_red1)
             mask2 = cv2.inRange(hsv_image, lower_red2, upper_red2)
@@ -81,21 +81,20 @@ def imageProcess_task():
             # print size
 
             r_circles = cv2.HoughCircles(maskr, cv2.HOUGH_GRADIENT, 1, 80,
-                               param1=50, param2=30, minRadius=15, maxRadius=100)
+                               param1=50, param2=35, minRadius=15, maxRadius=100)
 
             g_circles = cv2.HoughCircles(maskg, cv2.HOUGH_GRADIENT, 1, 60,
                                  param1=50, param2=25, minRadius=15, maxRadius=100)
 
             y_circles = cv2.HoughCircles(masky, cv2.HOUGH_GRADIENT, 1, 30,
-                                 param1=50, param2=30, minRadius=15, maxRadius=100)
+                                 param1=50, param2=25, minRadius=15, maxRadius=100)
 
             # traffic light detect
-            bound = 6.0 / 10
             if r_circles is not None:
                 r_circles = np.uint16(np.around(r_circles))
 
                 for i in r_circles[0, :]:
-                    if i[0] > size[1] or i[1] > size[0]or i[1] > size[0]*bound:
+                    if i[0] > size[1] or i[1] > size[0] or i[1]+i[2] > size[0]:
                         continue
                     kernel = np.ones((i[2]/5,i[2]/5),np.uint8)
                     maskr = cv2.morphologyEx(maskr, cv2.MORPH_CLOSE, kernel)
@@ -116,7 +115,8 @@ def imageProcess_task():
                 g_circles = np.uint16(np.around(g_circles))
 
                 for i in g_circles[0, :]:
-                    if i[0] > size[1] or i[1] > size[0] or i[1] > size[0]*bound:
+                    print("g[h/s]=", i[0],i[1],size[0],size[1])
+                    if i[0] > size[1] or i[1] > size[0] or i[1] + i[2]> size[0]:
                         continue
                     kernel = np.ones((i[2]/5,i[2]/5),np.uint8)
                     maskg = cv2.morphologyEx(maskg, cv2.MORPH_CLOSE, kernel)
@@ -129,7 +129,7 @@ def imageProcess_task():
                                 continue
                             h += maskg[i[1]+m, i[0]+n]
                             s += 1
-
+                    print("g[h/s]=", h/s)
                     if h / s > 90:
                         cv2.circle(result_image, (i[0], i[1]), i[2]+10, (0, 255, 0), 2)
                         cv2.circle(maskg, (i[0], i[1]), i[2]+30, (255, 255, 255), 2)
@@ -139,7 +139,7 @@ def imageProcess_task():
                 y_circles = np.uint16(np.around(y_circles))
 
                 for i in y_circles[0, :]:
-                    if i[0] > size[1] or i[1] > size[0] or i[1] > size[0]*bound:
+                    if i[0] > size[1] or i[1] > size[0] or i[1] + i[2]> size[0]:
                         continue
                     kernel = np.ones((i[2]/5,i[2]/5),np.uint8)
                     masky = cv2.morphologyEx(masky, cv2.MORPH_CLOSE, kernel)
@@ -157,9 +157,9 @@ def imageProcess_task():
                             cv2.putText(result_image,'YELLOW',(i[0], i[1]), font, 1,(255,0,0),2,cv2.LINE_AA)
 
             cv2.imshow('traffic_light',result_image)
-            #cv2.imshow('maskr', maskr)
-            #cv2.imshow('maskg', maskg)
-            #cv2.imshow('masky', masky)
+            cv2.imshow('maskr', maskr)
+            cv2.imshow('maskg', maskg)
+            cv2.imshow('masky', masky)
             cv2.waitKey(10)
             #count = count + 1
             #print("test 1", count)
@@ -168,9 +168,9 @@ def imageProcess_task():
         cv2.destroyWindow('traffic_light')
         #cv2.destroyWindow('raw_image')
         #cv2.destroyWindow('hsv_image')
-        #cv2.destroyWindow('maskr')
-        #cv2.destroyWindow('maskg')
-        #cv2.destroyWindow('masky')
+        cv2.destroyWindow('maskr')
+        cv2.destroyWindow('maskg')
+        cv2.destroyWindow('masky')
         cameraCapture.release()
     except Exception, error:
         print("error code imageProcess_task!")
@@ -179,9 +179,9 @@ def imageProcess_task():
         cv2.destroyWindow('traffic_light')
         #cv2.destroyWindow('raw_image')
         #cv2.destroyWindow('hsv_image')
-        #cv2.destroyWindow('maskr')
-        #cv2.destroyWindow('maskg')
-        #cv2.destroyWindow('masky')
+        cv2.destroyWindow('maskr')
+        cv2.destroyWindow('maskg')
+        cv2.destroyWindow('masky')
         cameraCapture.release()
         return -1
 
