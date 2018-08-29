@@ -79,11 +79,11 @@ yellow_min_radius = 15
 yellow_max_radius = 100
 
 red_hs_threshold = 50
-green_hs_threshold = 100
+green_hs_threshold = 80
 yellow_hs_threshold = 50
 
 def max_value(x,y,z):
-    index = 1
+    index = 0
     max = x
     if y > max:
         max = y
@@ -91,14 +91,16 @@ def max_value(x,y,z):
     if z > max:
         max = z
         index = 3
+    if max == 0:
+        index = 0
     return max, index
 
 def main(argv=None):
     try:
-        #timeCountTask = threading.Thread(target = timeCount_task)
-        #timeCountTask.start()
-        #imageProcessTask = threading.Thread(target = imageProcess_task)
-        #imageProcessTask.start()
+        timeCountTask = threading.Thread(target = timeCount_task)
+        timeCountTask.start()
+        imageProcessTask = threading.Thread(target = imageProcess_task)
+        imageProcessTask.start()
         uartDataProcessTask = threading.Thread(target = uartDataProcess_task)
         uartDataProcessTask.start()
     except:
@@ -149,6 +151,7 @@ def uartDataProcess_task():
     global green_hs_threshold 
     global yellow_hs_threshold
     ser = None
+    pre_port_serial = None 
     while True:
         t0 = time.time()
         port_list = list(serial.tools.list_ports.comports())
@@ -158,18 +161,19 @@ def uartDataProcess_task():
             for i in range(len(port_list)):
                 port_list_0 = list(port_list[i])
                 port_serial = port_list_0[0]
-                #print port_serial
                 if re.match('/dev/ttyUSB',port_serial) != None:
                     try:
-                        ser = serial.Serial(port_serial, 115200, timeout = 0.5)
+                        if pre_port_serial != port_serial:
+                            ser = serial.Serial(port_serial, 115200, timeout = 0.05)
                         if(ser is not None):
+                            pre_port_serial = port_serial
                             data_frame = ser.readline()
                             if data_frame != "":
-                                print data_frame[0]
+                                print data_frame
                                 if (data_frame[0] == 'g') or (data_frame[0] == 'G'):
                                     cmd_data =  data_frame.split()
                                     if int(cmd_data[0][1:]) == 11:
-                                        print "set_color_ranger"
+                                        #print "set_color_ranger"
                                         if(cmd_data[1][0] == 'C') or (cmd_data[1][0] == 'c'):
                                             if int(cmd_data[1][1:]) == RED_COLOR:
                                                 if(cmd_data[2][0] == 'T') or (cmd_data[2][0] == 't'):
@@ -226,7 +230,7 @@ def uartDataProcess_task():
                                                             if(cmd_data[i][0] == 'V') or (cmd_data[i][0] == 'v'):
                                                                 yellow_upper_v_value = int(cmd_data[i][1:])
                                     elif int(cmd_data[0][1:]) == 12:
-                                        print "set_hough_circles_para"
+                                        #print "set_hough_circles_para"
                                         if(cmd_data[1][0] == 'C') or (cmd_data[1][0] == 'c'):
                                             if int(cmd_data[1][1:]) == RED_COLOR:
                                                 for i in range(2,len(cmd_data)):
@@ -265,7 +269,7 @@ def uartDataProcess_task():
                                                     if(cmd_data[i][0] == 'X') or (cmd_data[i][0] == 'x'):
                                                         yellow_max_radius = int(cmd_data[i][1:])
                                     elif int(cmd_data[0][1:]) == 13:
-                                        print "set_hs_threshold"
+                                        #print "set_hs_threshold"
                                         if(cmd_data[1][0] == 'C') or (cmd_data[1][0] == 'c'):
                                             if int(cmd_data[1][1:]) == RED_COLOR:
                                                 if(cmd_data[2][0] == 'T') or (cmd_data[2][0] == 't'):
@@ -276,16 +280,16 @@ def uartDataProcess_task():
                                             if int(cmd_data[1][1:]) == YELLOW_COLOR:
                                                 if(cmd_data[2][0] == 'T') or (cmd_data[2][0] == 't'):
                                                     yellow_hs_threshold = int(cmd_data[2][1:])
+                            #print("red",red_hs_threshold)
+                            data_frame = ""
                             t1 = time.time()
-                            print(t1-t0)
-                            #time.sleep(0.01)
-                            #ser.write("G20 L0\r\n")
-                            #time.sleep(0.01)
-                            #ser.close()
+                            #print(t1-t0)
+                            send_data = "G20 L" + str(traffic_light_state) + "\r\n"
+                            print send_data
+                            ser.write(send_data)
                     except Exception, error:
                         print("Exception:" + str(Exception))
                         print("error:" + str(error))
-        #time.sleep(0.5)
 
 def timeCount_task():
     global timeCount
@@ -366,10 +370,8 @@ def imageProcess_task():
             #print("total frame",totalFrame)
             success, frame = cameraCapture.read()
             result_image = frame
-
             if frame_count % 5 == 0:
                 hsv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-
                 # color range
                 lower_red1 = np.array([red_lower_h_value,red_lower_s_value,red_lower_v_value ])
                 upper_red1 = np.array([red_upper_h_value ,red_upper_s_value ,red_upper_v_value ])
@@ -488,7 +490,7 @@ def imageProcess_task():
             #cv2.imshow('maskr', maskr)
             #cv2.imshow('maskg', maskg)
             #cv2.imshow('masky', masky)
-            cv2.waitKey(5)
+            cv2.waitKey(10)
             #count = count + 1
             #print("test 1", count)
             #t1 = time.time()
