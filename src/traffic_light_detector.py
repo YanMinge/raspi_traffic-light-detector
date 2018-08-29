@@ -148,7 +148,7 @@ def uartDataProcess_task():
     global red_hs_threshold
     global green_hs_threshold 
     global yellow_hs_threshold
-
+    ser = None
     while True:
         t0 = time.time()
         port_list = list(serial.tools.list_ports.comports())
@@ -172,120 +172,120 @@ def uartDataProcess_task():
                                         print "set_color_ranger"
                                         if(cmd_data[1][0] == 'C') or (cmd_data[1][0] == 'c'):
                                             if int(cmd_data[1][1:]) == RED_COLOR:
-                                                if(cmd_data[2][0] == 'T') or (cmd_data[2][0] == 't')
+                                                if(cmd_data[2][0] == 'T') or (cmd_data[2][0] == 't'):
                                                     if int(cmd_data[2][1:]) == LOWER:
                                                         for i in range(3,len(cmd_data)):
-                                                            if(cmd_data[i][0] == 'H') or (cmd_data[i][0] == 'h')
+                                                            if(cmd_data[i][0] == 'H') or (cmd_data[i][0] == 'h'):
                                                                 red_lower_h_value = int(cmd_data[i][1:])
-                                                            if(cmd_data[i][0] == 'S') or (cmd_data[i][0] == 's')
+                                                            if(cmd_data[i][0] == 'S') or (cmd_data[i][0] == 's'):
                                                                 red_lower_s_value = int(cmd_data[i][1:])
-                                                            if(cmd_data[i][0] == 'V') or (cmd_data[i][0] == 'v')
+                                                            if(cmd_data[i][0] == 'V') or (cmd_data[i][0] == 'v'):
                                                                 red_lower_v_value = int(cmd_data[i][1:])
                                                     elif int(cmd_data[2][1:]) == UPPER:
                                                         for i in range(3,len(cmd_data)):
-                                                            if(cmd_data[i][0] == 'H') or (cmd_data[i][0] == 'h')
+                                                            if(cmd_data[i][0] == 'H') or (cmd_data[i][0] == 'h'):
                                                                 red_upper_h_value = int(cmd_data[i][1:])
-                                                            if(cmd_data[i][0] == 'S') or (cmd_data[i][0] == 's')
+                                                            if(cmd_data[i][0] == 'S') or (cmd_data[i][0] == 's'):
                                                                 red_upper_s_value = int(cmd_data[i][1:])
-                                                            if(cmd_data[i][0] == 'V') or (cmd_data[i][0] == 'v')
+                                                            if(cmd_data[i][0] == 'V') or (cmd_data[i][0] == 'v'):
                                                                 red_upper_v_value = int(cmd_data[i][1:])
                                             elif int(cmd_data[1][1:]) == GREEN_COLOR:
-                                                if(cmd_data[2][0] == 'T') or (cmd_data[2][0] == 't')
+                                                if(cmd_data[2][0] == 'T') or (cmd_data[2][0] == 't'):
                                                     if int(cmd_data[2][1:]) == LOWER:
                                                         for i in range(3,len(cmd_data)):
-                                                            if(cmd_data[i][0] == 'H') or (cmd_data[i][0] == 'h')
+                                                            if(cmd_data[i][0] == 'H') or (cmd_data[i][0] == 'h'):
                                                                 green_lower_h_value = int(cmd_data[i][1:])
-                                                            if(cmd_data[i][0] == 'S') or (cmd_data[i][0] == 's')
+                                                            if(cmd_data[i][0] == 'S') or (cmd_data[i][0] == 's'):
                                                                 green_lower_s_value = int(cmd_data[i][1:])
-                                                            if(cmd_data[i][0] == 'V') or (cmd_data[i][0] == 'v')
+                                                            if(cmd_data[i][0] == 'V') or (cmd_data[i][0] == 'v'):
                                                                 green_lower_v_value = int(cmd_data[i][1:])
                                                     elif int(cmd_data[2][1:]) == UPPER:
                                                         for i in range(3,len(cmd_data)):
-                                                            if(cmd_data[i][0] == 'H') or (cmd_data[i][0] == 'h')
+                                                            if(cmd_data[i][0] == 'H') or (cmd_data[i][0] == 'h'):
                                                                 green_upper_h_value = int(cmd_data[i][1:])
-                                                            if(cmd_data[i][0] == 'S') or (cmd_data[i][0] == 's')
+                                                            if(cmd_data[i][0] == 'S') or (cmd_data[i][0] == 's'):
                                                                 green_upper_s_value = int(cmd_data[i][1:])
-                                                            if(cmd_data[i][0] == 'V') or (cmd_data[i][0] == 'v')
+                                                            if(cmd_data[i][0] == 'V') or (cmd_data[i][0] == 'v'):
                                                                 green_upper_v_value = int(cmd_data[i][1:])
                                             elif int(cmd_data[1][1:]) == YELLOW_COLOR:
-                                                if(cmd_data[2][0] == 'T') or (cmd_data[2][0] == 't')
+                                                if(cmd_data[2][0] == 'T') or (cmd_data[2][0] == 't'):
                                                     if int(cmd_data[2][1:]) == LOWER:
                                                         for i in range(3,len(cmd_data)):
-                                                            if(cmd_data[i][0] == 'H') or (cmd_data[i][0] == 'h')
+                                                            if(cmd_data[i][0] == 'H') or (cmd_data[i][0] == 'h'):
                                                                 yellow_lower_h_value = int(cmd_data[i][1:])
-                                                            if(cmd_data[i][0] == 'S') or (cmd_data[i][0] == 's')
+                                                            if(cmd_data[i][0] == 'S') or (cmd_data[i][0] == 's'):
                                                                 yellow_lower_s_value = int(cmd_data[i][1:])
-                                                            if(cmd_data[i][0] == 'V') or (cmd_data[i][0] == 'v')
+                                                            if(cmd_data[i][0] == 'V') or (cmd_data[i][0] == 'v'):
                                                                 yellow_lower_v_value = int(cmd_data[i][1:])
                                                     elif int(cmd_data[2][1:]) == UPPER:
                                                         for i in range(3,len(cmd_data)):
-                                                            if(cmd_data[i][0] == 'H') or (cmd_data[i][0] == 'h')
+                                                            if(cmd_data[i][0] == 'H') or (cmd_data[i][0] == 'h'):
                                                                 yellow_upper_h_value = int(cmd_data[i][1:])
-                                                            if(cmd_data[i][0] == 'S') or (cmd_data[i][0] == 's')
+                                                            if(cmd_data[i][0] == 'S') or (cmd_data[i][0] == 's'):
                                                                 yellow_upper_s_value = int(cmd_data[i][1:])
-                                                            if(cmd_data[i][0] == 'V') or (cmd_data[i][0] == 'v')
+                                                            if(cmd_data[i][0] == 'V') or (cmd_data[i][0] == 'v'):
                                                                 yellow_upper_v_value = int(cmd_data[i][1:])
                                     elif int(cmd_data[0][1:]) == 12:
                                         print "set_hough_circles_para"
-                                        if(cmd_data[1][0] == 'C') or (cmd_data[1][0] == 'c')
+                                        if(cmd_data[1][0] == 'C') or (cmd_data[1][0] == 'c'):
                                             if int(cmd_data[1][1:]) == RED_COLOR:
                                                 for i in range(2,len(cmd_data)):
-                                                    if(cmd_data[i][0] == 'D') or (cmd_data[i][0] == 'd')
+                                                    if(cmd_data[i][0] == 'D') or (cmd_data[i][0] == 'd'):
                                                         red_minDist = int(cmd_data[i][1:])
-                                                    if(cmd_data[i][0] == 'O') or (cmd_data[i][0] == 'o')
+                                                    if(cmd_data[i][0] == 'O') or (cmd_data[i][0] == 'o'):
                                                         red_operator_threshold = int(cmd_data[i][1:])
-                                                    if(cmd_data[i][0] == 'A') or (cmd_data[i][0] == 'a')
+                                                    if(cmd_data[i][0] == 'A') or (cmd_data[i][0] == 'a'):
                                                         red_accumulator_threshold = int(cmd_data[i][1:])
-                                                    if(cmd_data[i][0] == 'I') or (cmd_data[i][0] == 'i')
+                                                    if(cmd_data[i][0] == 'I') or (cmd_data[i][0] == 'i'):
                                                         red_min_radius = int(cmd_data[i][1:])
-                                                    if(cmd_data[i][0] == 'X') or (cmd_data[i][0] == 'x')
+                                                    if(cmd_data[i][0] == 'X') or (cmd_data[i][0] == 'x'):
                                                         red_max_radius = int(cmd_data[i][1:])
                                             elif int(cmd_data[1][1:]) == GREEN_COLOR:
                                                 for i in range(2,len(cmd_data)):
-                                                    if(cmd_data[i][0] == 'D') or (cmd_data[i][0] == 'd')
+                                                    if(cmd_data[i][0] == 'D') or (cmd_data[i][0] == 'd'):
                                                         green_minDist = int(cmd_data[i][1:])
-                                                    if(cmd_data[i][0] == 'O') or (cmd_data[i][0] == 'o')
+                                                    if(cmd_data[i][0] == 'O') or (cmd_data[i][0] == 'o'):
                                                         green_operator_threshold = int(cmd_data[i][1:])
-                                                    if(cmd_data[i][0] == 'A') or (cmd_data[i][0] == 'a')
+                                                    if(cmd_data[i][0] == 'A') or (cmd_data[i][0] == 'a'):
                                                         green_accumulator_threshold = int(cmd_data[i][1:])
-                                                    if(cmd_data[i][0] == 'I') or (cmd_data[i][0] == 'i')
+                                                    if(cmd_data[i][0] == 'I') or (cmd_data[i][0] == 'i'):
                                                         green_min_radius = int(cmd_data[i][1:])
-                                                    if(cmd_data[i][0] == 'X') or (cmd_data[i][0] == 'x')
+                                                    if(cmd_data[i][0] == 'X') or (cmd_data[i][0] == 'x'):
                                                         green_max_radius = int(cmd_data[i][1:])
                                             elif int(cmd_data[1][1:]) == YELLOW_COLOR:
                                                 for i in range(2,len(cmd_data)):
-                                                    if(cmd_data[i][0] == 'D') or (cmd_data[i][0] == 'd')
+                                                    if(cmd_data[i][0] == 'D') or (cmd_data[i][0] == 'd'):
                                                         yellow_minDist = int(cmd_data[i][1:])
-                                                    if(cmd_data[i][0] == 'O') or (cmd_data[i][0] == 'o')
+                                                    if(cmd_data[i][0] == 'O') or (cmd_data[i][0] == 'o'):
                                                         yellow_operator_threshold = int(cmd_data[i][1:])
-                                                    if(cmd_data[i][0] == 'A') or (cmd_data[i][0] == 'a')
+                                                    if(cmd_data[i][0] == 'A') or (cmd_data[i][0] == 'a'):
                                                         yellow_accumulator_threshold = int(cmd_data[i][1:])
-                                                    if(cmd_data[i][0] == 'I') or (cmd_data[i][0] == 'i')
+                                                    if(cmd_data[i][0] == 'I') or (cmd_data[i][0] == 'i'):
                                                         yellow_min_radius = int(cmd_data[i][1:])
-                                                    if(cmd_data[i][0] == 'X') or (cmd_data[i][0] == 'x')
+                                                    if(cmd_data[i][0] == 'X') or (cmd_data[i][0] == 'x'):
                                                         yellow_max_radius = int(cmd_data[i][1:])
                                     elif int(cmd_data[0][1:]) == 13:
                                         print "set_hs_threshold"
-                                        if(cmd_data[1][0] == 'C') or (cmd_data[1][0] == 'c')
+                                        if(cmd_data[1][0] == 'C') or (cmd_data[1][0] == 'c'):
                                             if int(cmd_data[1][1:]) == RED_COLOR:
-                                                if(cmd_data[2][0] == 'T') or (cmd_data[2][0] == 't')
+                                                if(cmd_data[2][0] == 'T') or (cmd_data[2][0] == 't'):
                                                     red_hs_threshold = int(cmd_data[2][1:])
                                             if int(cmd_data[1][1:]) == GREEN_COLOR:
-                                                if(cmd_data[2][0] == 'T') or (cmd_data[2][0] == 't')
+                                                if(cmd_data[2][0] == 'T') or (cmd_data[2][0] == 't'):
                                                     green_hs_threshold  = int(cmd_data[2][1:])
                                             if int(cmd_data[1][1:]) == YELLOW_COLOR:
-                                                if(cmd_data[2][0] == 'T') or (cmd_data[2][0] == 't')
+                                                if(cmd_data[2][0] == 'T') or (cmd_data[2][0] == 't'):
                                                     yellow_hs_threshold = int(cmd_data[2][1:])
                             t1 = time.time()
-                            print(t2-t1)
-                            #sleep(0.01)
+                            print(t1-t0)
+                            #time.sleep(0.01)
                             #ser.write("G20 L0\r\n")
-                            #sleep(0.01)
+                            #time.sleep(0.01)
                             #ser.close()
                     except Exception, error:
                         print("Exception:" + str(Exception))
                         print("error:" + str(error))
-        sleep(0.5)
+        #time.sleep(0.5)
 
 def timeCount_task():
     global timeCount
