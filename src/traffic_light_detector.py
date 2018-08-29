@@ -13,17 +13,44 @@ import threading
 import time
 
 # 全局变量定义
+TRAFFIC_LIGHT_STATE_NULL = 0
+TRAFFIC_LIGHT_STATE_RED = 1
+TRAFFIC_LIGHT_STATE_GREEN = 2
+TRAFFIC_LIGHT_STATE_YELLOW = 3
+
 timeCount = 0
 mouse_clicked = False
+traffic_light_state = TRAFFIC_LIGHT_STATE_NULL
+red_light_max_radius_r = 0
+red_light_max_radius_g = 0
+red_light_max_radius_y = 0
+
+def max_value(x,y,z):
+    index = 1
+    max = x
+    if y > max:
+        max = y
+        index = 2
+    if z > max:
+        max = z
+        index = 3
+    return max, index
 
 def main(argv=None):
     try:
-        timeCountTask = threading.Thread(target = timeCount_task)
-        timeCountTask.start()
-        imageProcessTask = threading.Thread(target = imageProcess_task)
-        imageProcessTask.start()
+        #timeCountTask = threading.Thread(target = timeCount_task)
+        #timeCountTask.start()
+        #imageProcessTask = threading.Thread(target = imageProcess_task)
+        #imageProcessTask.start()
+        uartDataProcessTask = threading.Thread(target = uartDataProcess_task)
+        uartDataProcessTask.start()
     except:
         print("error code main!")
+
+def uartDataProcess_task():
+    global traffic_light_state
+    while( True ):
+        pass
 
 def timeCount_task():
     global timeCount
@@ -35,14 +62,16 @@ def timeCount_task():
 def imageProcess_task():
     try:
         global mouse_clicked
+        global traffic_light_state
+
         r = 15
         font = cv2.FONT_HERSHEY_SIMPLEX
         cv2.namedWindow('traffic_light')
         #cv2.namedWindow('raw_image')
         #cv2.namedWindow('hsv_image')
-        cv2.namedWindow('maskr')
-        cv2.namedWindow('maskg')
-        cv2.namedWindow('masky')
+        #cv2.namedWindow('maskr')
+        #cv2.namedWindow('maskg')
+        #cv2.namedWindow('masky')
 
         cv2.setMouseCallback('traffic_light',onMouse)
         print 'Showing camera feed. click window or press any key to stop.'
@@ -59,9 +88,8 @@ def imageProcess_task():
             #print("total frame",totalFrame)
             success, frame = cameraCapture.read()
             result_image = frame
-            frame_count = frame_count + 1
 
-            if(frame_count % 4 == 0)：
+            if frame_count % 5 == 0:
                 hsv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
                 # color range
@@ -79,17 +107,21 @@ def imageProcess_task():
                 masky = cv2.inRange(hsv_image, lower_yellow, upper_yellow)
                 maskr = cv2.add(mask1, mask2)
 
-                size = raw_image.shape
+                size = frame.shape
                 # print size
 
                 r_circles = cv2.HoughCircles(maskr, cv2.HOUGH_GRADIENT, 1, 80,
-                                   param1=50, param2=35, minRadius=15, maxRadius=100)
+                                   param1=50, param2=25, minRadius=15, maxRadius=100)
 
                 g_circles = cv2.HoughCircles(maskg, cv2.HOUGH_GRADIENT, 1, 60,
                                      param1=50, param2=25, minRadius=15, maxRadius=100)
 
                 y_circles = cv2.HoughCircles(masky, cv2.HOUGH_GRADIENT, 1, 30,
                                      param1=50, param2=25, minRadius=15, maxRadius=100)
+
+                red_light_max_radius_r = 0
+                red_light_max_radius_g = 0
+                red_light_max_radius_y = 0
 
                 # traffic light detect
                 if r_circles is not None:
@@ -98,6 +130,7 @@ def imageProcess_task():
                     for i in r_circles[0, :]:
                         if i[0] > size[1] or i[1] > size[0] or i[1]+i[2] > size[0]:
                             continue
+                        #print("r_circles detect!")
                         kernel = np.ones((i[2]/5,i[2]/5),np.uint8)
                         maskr = cv2.morphologyEx(maskr, cv2.MORPH_CLOSE, kernel)
                         h, s = 0.0, 0.0
@@ -108,16 +141,18 @@ def imageProcess_task():
                                     continue
                                 h += maskr[i[1]+m, i[0]+n]
                                 s += 1
+                        #print("r[h/s]=", h/s)
                         if h / s > 50:
                             cv2.circle(result_image, (i[0], i[1]), i[2]+10, (0, 255, 0), 2)
                             cv2.circle(maskr, (i[0], i[1]), i[2]+30, (255, 255, 255), 2)
                             cv2.putText(result_image,'RED',(i[0], i[1]), font, 1,(255,0,0),2,cv2.LINE_AA)
+                            if i[2] > red_light_max_radius_r:
+                                red_light_max_radius_r = i[2]
 
                 if g_circles is not None:
                     g_circles = np.uint16(np.around(g_circles))
 
                     for i in g_circles[0, :]:
-                        print("g[h/s]=", i[0],i[1],size[0],size[1])
                         if i[0] > size[1] or i[1] > size[0] or i[1] + i[2]> size[0]:
                             continue
                         kernel = np.ones((i[2]/5,i[2]/5),np.uint8)
@@ -131,11 +166,13 @@ def imageProcess_task():
                                     continue
                                 h += maskg[i[1]+m, i[0]+n]
                                 s += 1
-                        print("g[h/s]=", h/s)
-                        if h / s > 90:
+                        #print("g[h/s]=", h/s)
+                        if h / s > 100:
                             cv2.circle(result_image, (i[0], i[1]), i[2]+10, (0, 255, 0), 2)
                             cv2.circle(maskg, (i[0], i[1]), i[2]+30, (255, 255, 255), 2)
                             cv2.putText(result_image,'GREEN',(i[0], i[1]), font, 1,(255,0,0),2,cv2.LINE_AA)
+                            if i[2] > red_light_max_radius_g:
+                                red_light_max_radius_g = i[2]
 
                 if y_circles is not None:
                     y_circles = np.uint16(np.around(y_circles))
@@ -153,26 +190,37 @@ def imageProcess_task():
                                     continue
                                 h += masky[i[1]+m, i[0]+n]
                                 s += 1
-                            if h / s > 50:
-                                cv2.circle(result_image, (i[0], i[1]), i[2]+10, (0, 255, 0), 2)
-                                cv2.circle(masky, (i[0], i[1]), i[2]+30, (255, 255, 255), 2)
-                                cv2.putText(result_image,'YELLOW',(i[0], i[1]), font, 1,(255,0,0),2,cv2.LINE_AA)
+                        #print("y[h/s]=", h/s)
+                        if h / s > 50:
+                            cv2.circle(result_image, (i[0], i[1]), i[2]+10, (0, 255, 0), 2)
+                            cv2.circle(masky, (i[0], i[1]), i[2]+30, (255, 255, 255), 2)
+                            cv2.putText(result_image,'YELLOW',(i[0], i[1]), font, 1,(255,0,0),2,cv2.LINE_AA)
+                            if i[2] > red_light_max_radius_y:
+                                red_light_max_radius_y = i[2]
+            
+                radius, traffic_light_state = max_value(red_light_max_radius_r,red_light_max_radius_g,red_light_max_radius_y)
+                if traffic_light_state != TRAFFIC_LIGHT_STATE_NULL:
+                    cv2.imshow('traffic_light',result_image)
 
-            cv2.imshow('traffic_light',result_image)
-            cv2.imshow('maskr', maskr)
-            cv2.imshow('maskg', maskg)
-            cv2.imshow('masky', masky)
-            cv2.waitKey(10)
+            frame_count = frame_count + 1
+            if frame_count == 4*100000:
+                frame_count = 0
+            if traffic_light_state == TRAFFIC_LIGHT_STATE_NULL:
+            		cv2.imshow('traffic_light',result_image)
+            #cv2.imshow('maskr', maskr)
+            #cv2.imshow('maskg', maskg)
+            #cv2.imshow('masky', masky)
+            cv2.waitKey(5)
             #count = count + 1
             #print("test 1", count)
-            t1 = time.time()
-            print("time", t1 - t0)
+            #t1 = time.time()
+            #print("time", t1 - t0)
         cv2.destroyWindow('traffic_light')
         #cv2.destroyWindow('raw_image')
         #cv2.destroyWindow('hsv_image')
-        cv2.destroyWindow('maskr')
-        cv2.destroyWindow('maskg')
-        cv2.destroyWindow('masky')
+        #cv2.destroyWindow('maskr')
+        #cv2.destroyWindow('maskg')
+        #cv2.destroyWindow('masky')
         cameraCapture.release()
     except Exception, error:
         print("error code imageProcess_task!")
@@ -181,9 +229,9 @@ def imageProcess_task():
         cv2.destroyWindow('traffic_light')
         #cv2.destroyWindow('raw_image')
         #cv2.destroyWindow('hsv_image')
-        cv2.destroyWindow('maskr')
-        cv2.destroyWindow('maskg')
-        cv2.destroyWindow('masky')
+        #cv2.destroyWindow('maskr')
+        #cv2.destroyWindow('maskg')
+        #cv2.destroyWindow('masky')
         cameraCapture.release()
         return -1
 
